@@ -9,8 +9,8 @@ library(patchwork)
 
 seqtree_plot <- function(seqt, seqdat){
   
-  # seqt <- fam.ward.tree
-  # 
+  # seqt <- seqt
+  # # 
   # seqdat <- activity.year.seq
   
   tree_plots <- list()
@@ -28,6 +28,15 @@ seqtree_plot <- function(seqt, seqdat){
   split_var <- attributes(seqt$terms)$term.labels[seqt$root$split$varindex]
   
   split_vals <- seqt$root$split$labels
+  
+  
+  if(is.null(split_vals)&!is.null(seqt$root$split$breaks)){ 
+    
+    var_break <- seqt$root$split$breaks
+    
+    split_vals <-  c(paste("<=", var_break),paste(">", var_break))
+  }  
+  
   
   split_pops <- c(right=seqt$root$split$info$rpop, left=seqt$root$split$info$lpop)
   
@@ -108,17 +117,33 @@ seqtree_plot <- function(seqt, seqdat){
     title_lab <- ifelse(right_left=="left", paste(tree_plots[[parent_ind]]$split_var, tree_plots[[parent_ind]]$split_vals[1]),
                         paste(tree_plots[[parent_ind]]$split_var,tree_plots[[parent_ind]]$split_vals[2]))
     
-    split_val <- ifelse(right_left=="left", tree_plots[[parent_ind]]$split_vals[1],tree_plots[[parent_ind]]$split_vals[2])
+    split_vals <- ifelse(right_left=="left", tree_plots[[parent_ind]]$split_vals[1],tree_plots[[parent_ind]]$split_vals[2])
+    
+    if(is.null(split_vals)){ 
+      
+      split_vals <-  c(0,1)
+    } 
     
     depth <- kids_list[[x]]$info$depth
     
     
     
-    plot <- ggseqplot::ggseqdplot(seqdat[ind,])+labs(title=paste(split_val,"n=", length(ind)), 
+    plot <- ggseqplot::ggseqdplot(seqdat[ind,])+labs(title=paste(split_vals,"n=", length(ind)), 
                                                      caption=paste("split no.", n_split, split_var))+
       theme(legend.position = "none")+theme(plot.margin = margin(5, 5, 5, 5, "pt"), 
                                             axis.title.y = element_blank(),
                                             plot.title = element_text(hjust = 0.5), plot.caption = element_text(hjust = 0.5, size=14))
+    
+    split_vals <- kids_list[[x]]$split$labels
+    
+    if(is.null(split_vals)&!is.null(kids_list[[x]]$split$breaks)){ 
+      
+      var_break <- kids_list[[x]]$split$breaks
+      
+      split_vals <-  c(paste("<=", var_break),paste(">", var_break))
+    }  
+    
+    
     
     #prevent overlap in x-positions
     
